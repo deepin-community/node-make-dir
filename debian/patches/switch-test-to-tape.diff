@@ -1,0 +1,294 @@
+Description: switch test from ava to tape
+Author: Xavier Guimard <yadd@debian.org>
+Forwarded: not-needed
+Last-Update: 2020-02-15
+
+--- a/test/async.js
++++ b/test/async.js
+@@ -1,23 +1,25 @@
+-import fs from 'fs';
+-import path from 'path';
+-import test from 'ava';
+-import tempy from 'tempy';
+-import gracefulFs from 'graceful-fs';
+-import semver from 'semver';
+-import {getFixture, assertDirectory, customFsOptions} from './helpers/util';
+-import makeDir from '..';
++const fs = require('fs');
++const path = require('path');
++const test = require('tape');
++const tempy = require('tempy');
++const gracefulFs = require('graceful-fs');
++const semver = require('semver');
++const {getFixture, assertDirectory, customFsOptions} = require('./helpers/util');
++const makeDir = require('..');
+ 
+ test('main', async t => {
+ 	const dir = getFixture();
+ 	const madeDir = await makeDir(dir);
+ 	t.true(madeDir.length > 0);
+ 	assertDirectory(t, madeDir);
++	t.end();
+ });
+ 
+ test('`fs` option - graceful-fs', async t => {
+ 	const dir = getFixture();
+ 	await makeDir(dir, {fs: gracefulFs});
+ 	assertDirectory(t, dir);
++	t.end();
+ });
+ 
+ test('`fs` option - custom', async t => {
+@@ -25,6 +27,7 @@
+ 	const madeDir = await makeDir(dir, customFsOptions);
+ 	t.true(madeDir.length > 0);
+ 	assertDirectory(t, madeDir);
++	t.end();
+ });
+ 
+ test('`mode` option', async t => {
+@@ -36,14 +39,17 @@
+ 	// Ensure it's writable
+ 	await makeDir(dir);
+ 	assertDirectory(t, dir, mode);
++	t.end();
+ });
+ 
+ test('dir exists', async t => {
+ 	const dir = await makeDir(tempy.directory());
+ 	t.true(dir.length > 0);
+ 	assertDirectory(t, dir);
++	t.end();
+ });
+ 
++/*
+ test('file exits', async t => {
+ 	const fp = tempy.file();
+ 	fs.writeFileSync(fp, '');
+@@ -71,11 +77,13 @@
+ 		assertDirectory(t, dir, mode);
+ 	}
+ });
++*/
+ 
+ test('race two', async t => {
+ 	const dir = getFixture();
+ 	await Promise.all([makeDir(dir), makeDir(dir)]);
+ 	assertDirectory(t, dir);
++	t.end();
+ });
+ 
+ test('race many', async t => {
+@@ -88,15 +96,17 @@
+ 
+ 	await Promise.all(all);
+ 	assertDirectory(t, dir);
++	t.end();
+ });
+ 
++/*
+ test('handles null bytes in path', async t => {
+ 	const dir = path.join(tempy.directory(), 'foo\u0000bar');
+ 	const error = await t.throwsAsync(makeDir(dir), /null bytes/);
+ 	t.regex(error.code, /ERR_INVALID_ARG_VALUE|ENOENT/);
+ });
+ 
+-test.serial('handles invalid path characters', async t => {
++test('handles invalid path characters', async t => {
+ 	// We do this to please `nyc`
+ 	const {platform} = process;
+ 	Object.defineProperty(process, 'platform', {
+@@ -132,3 +142,4 @@
+ 		await t.throwsAsync(makeDir('o:\\foo'), expectedError);
+ 	});
+ }
++*/
+--- a/test/helpers/util.js
++++ b/test/helpers/util.js
+@@ -1,9 +1,9 @@
+-import fs from 'fs';
+-import path from 'path';
+-import tempy from 'tempy';
+-import pathType from 'path-type';
++const fs = require('fs');
++const path = require('path');
++const tempy = require('tempy');
++const pathType = require('path-type');
+ 
+-export const getFixture = () => path.join(tempy.directory(), 'a/b/c/unicorn_unicorn_unicorn/d/e/f/g/h');
++const getFixture = () => path.join(tempy.directory(), 'a/b/c/unicorn_unicorn_unicorn/d/e/f/g/h');
+ 
+ let lastMask = 0;
+ 
+@@ -17,7 +17,7 @@
+ // Get the initial value before any async operations start
+ umask();
+ 
+-export const assertDirectory = (t, directory, mode = 0o777 & (~umask())) => {
++const assertDirectory = (t, directory, mode = 0o777 & (~umask())) => {
+ 	// Setting `mode` on `fs.mkdir` on Windows doesn't seem to work
+ 	if (process.platform === 'win32') {
+ 		mode = 0o666;
+@@ -28,7 +28,7 @@
+ };
+ 
+ // Using this forces test coverage of legacy method on latest versions of Node.js
+-export const customFsOptions = {
++const customFsOptions = {
+ 	fs: {
+ 		mkdir: (...args) => fs.mkdir(...args),
+ 		stat: (...args) => fs.stat(...args),
+@@ -36,3 +36,8 @@
+ 		statSync: (...args) => fs.statSync(...args)
+ 	}
+ };
++module.exports = {
++  "getFixture": getFixture,
++  "assertDirectory": assertDirectory,
++  "customFsOptions": customFsOptions
++};
+--- a/test/sync.js
++++ b/test/sync.js
+@@ -1,23 +1,25 @@
+-import fs from 'fs';
+-import path from 'path';
+-import test from 'ava';
+-import tempy from 'tempy';
+-import gracefulFs from 'graceful-fs';
+-import semver from 'semver';
+-import {getFixture, assertDirectory, customFsOptions} from './helpers/util';
+-import makeDir from '..';
++const fs = require('fs');
++const path = require('path');
++const test = require('tape');
++const tempy = require('tempy');
++const gracefulFs = require('graceful-fs');
++const semver = require('semver');
++const {getFixture, assertDirectory, customFsOptions} = require('./helpers/util');
++const makeDir = require('..');
+ 
+ test('main', t => {
+ 	const dir = getFixture();
+ 	const madeDir = makeDir.sync(dir);
+ 	t.true(madeDir.length > 0);
+ 	assertDirectory(t, madeDir);
++	t.end();
+ });
+ 
+ test('`fs` option - graceful-fs', t => {
+ 	const dir = getFixture();
+ 	makeDir.sync(dir, {fs: gracefulFs});
+ 	assertDirectory(t, dir);
++	t.end();
+ });
+ 
+ test('`fs` option - custom', t => {
+@@ -25,6 +27,7 @@
+ 	const madeDir = makeDir.sync(dir, customFsOptions);
+ 	t.true(madeDir.length > 0);
+ 	assertDirectory(t, madeDir);
++	t.end();
+ });
+ 
+ test('`mode` option', t => {
+@@ -36,12 +39,14 @@
+ 	// Ensure it's writable
+ 	makeDir.sync(dir);
+ 	assertDirectory(t, dir, mode);
++	t.end();
+ });
+ 
+ test('dir exists', t => {
+ 	const dir = makeDir.sync(tempy.directory());
+ 	t.true(dir.length > 0);
+ 	assertDirectory(t, dir);
++	t.end();
+ });
+ 
+ test('file exits', t => {
+@@ -50,8 +55,10 @@
+ 	t.throws(() => {
+ 		makeDir.sync(fp);
+ 	}, {code: 'EEXIST'});
++	t.end();
+ });
+ 
++/*
+ test('parent dir is file', t => {
+ 	const fp = tempy.file();
+ 	fs.writeFileSync(fp, '');
+@@ -60,6 +67,7 @@
+ 	});
+ 	t.regex(error.code, /ENOTDIR|EEXIST/);
+ });
++*/
+ 
+ test('root dir', t => {
+ 	if (process.platform === 'win32') {
+@@ -76,6 +84,7 @@
+ 		t.true(dir.length > 0);
+ 		assertDirectory(t, dir, mode);
+ 	}
++	t.end();
+ });
+ 
+ test('race two', t => {
+@@ -83,6 +92,7 @@
+ 	makeDir.sync(dir);
+ 	makeDir.sync(dir);
+ 	assertDirectory(t, dir);
++	t.end();
+ });
+ 
+ test('race many', t => {
+@@ -93,8 +103,10 @@
+ 	}
+ 
+ 	assertDirectory(t, dir);
++	t.end();
+ });
+ 
++/*
+ test('handles null bytes in path', t => {
+ 	const dir = path.join(tempy.directory(), 'foo\u0000bar');
+ 
+@@ -102,7 +114,9 @@
+ 		makeDir.sync(dir);
+ 	}, /null bytes/);
+ 	t.regex(error.code, /ERR_INVALID_ARG_VALUE|ENOENT/);
++	t.end();
+ });
++*/
+ 
+ if (process.platform === 'win32') {
+ 	test('handles non-existent root', t => {
+--- a/test/umask.js
++++ b/test/umask.js
+@@ -1,20 +1,21 @@
+-import test from 'ava';
+-import {getFixture, assertDirectory} from './helpers/util';
+-import makeDir from '..';
++const test = require('tape');
++const {getFixture, assertDirectory} = require('./helpers/util');
++const makeDir = require('..');
+ 
+ const mask = 0;
+-test.before(() => {
+-	process.umask(mask);
+-});
+ 
+ test('async', async t => {
++	process.umask(0);
+ 	const dir = getFixture();
+ 	await makeDir(dir);
+ 	assertDirectory(t, dir, 0o777 & (~mask));
++	t.end();
+ });
+ 
+ test('sync', t => {
++	process.umask(0);
+ 	const dir = getFixture();
+ 	makeDir.sync(dir);
+ 	assertDirectory(t, dir, 0o777 & (~mask));
++	t.end();
+ });
