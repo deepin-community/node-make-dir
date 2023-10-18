@@ -1,3 +1,23 @@
+node-make-dir (3.1.0-3) unstable; urgency=medium
+
+  [ Debian Janitor ]
+  * Apply multi-arch hints. + node-make-dir: Add Multi-Arch: foreign.
+
+ -- Jelmer Vernooĳ <jelmer@debian.org>  Tue, 22 Nov 2022 12:16:21 +0000
+
+node-make-dir (3.1.0-2) unstable; urgency=medium
+
+  * team upload
+  * Bump debhelper compatibility level to 13
+  * Modernize debian/watch
+    * Fix GitHub tags regex
+    * Use dh-sequence-nodejs
+  * Update standards version to 4.6.0, no changes needed.
+  * Fix filenamemangle
+  * Drop dependency to nodejs
+
+ -- Yadd <yadd@debian.org>  Wed, 01 Dec 2021 15:22:26 +0100
+
 node-make-dir (3.1.0-1) unstable; urgency=medium
 
   [ Debian Janitor ]
